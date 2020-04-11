@@ -2,6 +2,15 @@ import uuid
 from tinydb import TinyDB
 from netaddr import valid_ipv4
 import zipfile
+import configparser
+
+
+config = configparser.ConfigParser()
+config.read('/opt/honeytokens/config.conf')
+
+conf = config['honeytokens-config']
+
+
 
 db = TinyDB('db.json')
 
@@ -44,7 +53,7 @@ def checkdata(payloadtype,hostname,ip,path,description):
             generateFolder(randomtoken)
             print('Generating desktop.ini file')
             
-        return True
+        return 'Success'
 
 def insertData(payloadtype,hostname,ip,path,description):
     try:
@@ -54,7 +63,9 @@ def insertData(payloadtype,hostname,ip,path,description):
         return 'Cant insert, ERROR'
     
 def generateDoc(randomtoken):
-    server = 'http://localhost:5000/token/'
+    webserverport = conf['webserverport']
+    webserveraddress = conf['webserveraddress']
+    server = webserveraddress + ':' + webserverport + '/token/'
     url = server + randomtoken
     docname = randomtoken + '.doc'
 
@@ -87,7 +98,7 @@ Content-Type: text/html; charset="utf-8"
 
 
 def generateFolder(randomtoken):
-    server = 'testserver.loc'
+    server = conf['domainname']
     url = '\\\\ft.%USERNAME%.ft.%COMPUTERNAME%.ft.%USERDOMAIN%.ft.' + randomtoken + '.' + server + '\\1.dll'
     content = """[.ShellClassInfo]\n
 IconResource=%s""" % url
@@ -114,10 +125,3 @@ IconResource=%s""" % url
 
 print(checkdata(payloadtype,hostname,ip,path,description))
 
-#db.insert({'token': 'test2', 'description': 'test token 2'})
-#print(ipaddress.ip_address(ip))
-
-
-#    print(randomtoken + hostname + ip + description)
-
-#db.insert({'token': randomtoken, 'hostname': hostname, 'ip': ip, 'description': description})
