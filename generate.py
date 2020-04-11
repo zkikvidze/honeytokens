@@ -3,6 +3,8 @@ from tinydb import TinyDB
 from netaddr import valid_ipv4
 import zipfile
 import configparser
+import argparse
+import sys
 
 
 config = configparser.ConfigParser()
@@ -16,12 +18,28 @@ db = TinyDB('db.json')
 
 randomtoken = str(uuid.uuid4())
 
-payloadtype=input('Payload Type (supported payloads: doc,folder):')
-hostname = input('Computer Hostname:')
-ip = input('Computer IP:')
-path = input('File Path:')
-description = input('Description:')
 
+def commandLine():
+    text = 'This script can generate honeytoken files. It will run in interactive mode when there is no arguments. For non-interactive mode and command line arguments, see help with -h:'
+    parser = argparse.ArgumentParser(description=text)
+
+    parser.add_argument('-p', '--payload_type', help='Type of payload, supported values are: doc, folder')
+    parser.add_argument('-c', '--computer_hostname', help='Hostname of computer where honeytoken will be placed')
+    parser.add_argument('-a', '--computer_address', help='IP address of computer where honeytoken will be placed')
+    parser.add_argument('-f', '--file_path', help='File path where honeytoken will be placed')
+    parser.add_argument('-d', '--description', help='Description')
+    args = parser.parse_args()
+
+    checkdata(args.payload_type,args.computer_hostname,args.computer_address,args.file_path,args.description)
+
+
+def interActive():
+    payloadtype=input('Payload Type (supported payloads: doc,folder):')
+    hostname = input('Computer Hostname:')
+    ip = input('Computer IP:')
+    path = input('File Path:')
+    description = input('Description:')
+    checkdata(payloadtype,hostname,ip,path,description)
 
 def checkdata(payloadtype,hostname,ip,path,description):
     print('\nChecking data validity..')
@@ -45,27 +63,26 @@ def checkdata(payloadtype,hostname,ip,path,description):
         return False
     else:
         print('Data is valid..')
-        #insertData(payloadtype,hostname,ip,path,description)
         if payloadtype == 'doc':
-            generateDoc(randomtoken)
             print('Generating Doc file')
+            generateDoc(randomtoken,hostname,ip,path,description)
         if payloadtype == 'folder':
-            generateFolder(randomtoken)
             print('Generating desktop.ini file')
+            generateFolder(randomtoken,hostname,ip,path,description)
             
         return 'Success'
 
 def insertData(payloadtype,hostname,ip,path,description):
     try:
-        print('Inserting in database..')
+        print('Updating database..')
         db.insert({'token': randomtoken, 'type': payloadtype, 'hostname': hostname, 'ip': ip, 'path': path, 'description': description})
     except:
         return 'Cant insert, ERROR'
     
-def generateDoc(randomtoken):
+def generateDoc(randomtoken,hostname,ip,path,description):
     webserverport = conf['webserverport']
     webserveraddress = conf['webserveraddress']
-    server = webserveraddress + ':' + webserverport + '/token/'
+    server = 'http://' + webserveraddress + ':' + webserverport + '/token/'
     url = server + randomtoken
     docname = randomtoken + '.doc'
 
@@ -90,14 +107,15 @@ Content-Type: text/html; charset="utf-8"
 
     payloadfile = open(docname, 'w')
     payloadfile.write(content)
-    payloadfile.close()    
-    insertData(payloadtype,hostname,ip,path,description)
+    payloadfile.close()
+    print('Generated: ' + docname )    
+    insertData('doc',hostname,ip,path,description)
 
 
 
 
 
-def generateFolder(randomtoken):
+def generateFolder(randomtoken,hostname,ip,path,description):
     server = conf['domainname']
     url = '\\\\ft.%USERNAME%.ft.%COMPUTERNAME%.ft.%USERDOMAIN%.ft.' + randomtoken + '.' + server + '\\1.dll'
     content = """[.ShellClassInfo]\n
@@ -120,8 +138,15 @@ IconResource=%s""" % url
     zf.writestr(zifolder, '')
     zf.writestr(zifile, content)
     zf.close()
-    insertData(payloadtype,hostname,ip,path,description)
+    print('Generated: ' + zipname)
+    insertData('folder',hostname,ip,path,description)
 
 
-print(checkdata(payloadtype,hostname,ip,path,description))
+#print(checkdata(payloadtype,hostname,ip,path,description))
+if __name__ == '__main__':
+    if not len(sys.argv) > 1:
+        print('Running in interactive mode, for command line arguments, see help with -h\n')
+        interActive()
+    else:
+        commandLine()
 

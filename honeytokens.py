@@ -13,7 +13,7 @@ import threading
 
 
 config = configparser.ConfigParser()
-config.read('/etc/honeytokens/config.conf')
+config.read('/opt/honeytokens/config.conf')
 
 conf = config['honeytokens-config']
 
@@ -190,17 +190,20 @@ def smtpOPN(msg):
 
 if __name__ == '__main__':
 
+    webserverport = conf.getint('webserverport')
+    dnsserverport = conf.getint('dnsserverport')
+
     site = webserver.Site(Simple())
     site.displayTracebacks = False
-    endpoint = endpoints.TCP4ServerEndpoint(reactor, 8080, interface=conf['webserveraddress'])
+    endpoint = endpoints.TCP4ServerEndpoint(reactor, webserverport, interface=conf['webserveraddress'])
     endpoint.listen(site)
 
 
     clients = [MockDNSResolver()]
     factoryDNS = dnsserver.DNSServerFactory(clients=clients)
     protocol = dns.DNSDatagramProtocol(controller=factoryDNS)
-    reactor.listenUDP(10053, protocol, interface=conf['dnsserveraddress'])
-    reactor.listenTCP(10053, factoryDNS, interface=conf['dnsserveraddress'])
+    reactor.listenUDP(dnsserverport, protocol, interface=conf['dnsserveraddress'])
+    reactor.listenTCP(dnsserverport, factoryDNS, interface=conf['dnsserveraddress'])
 
 
     reactor.run()
