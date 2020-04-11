@@ -1,0 +1,5 @@
+[Unit]
+Description=HoneyToken service
+
+[service]
+ExecStart=/home/regular/Documents/projects/canarytokens/eh.py
