@@ -1,0 +1,16 @@
+[Unit]
+Description=HoneyTokens service
+After=network.target
+
+
+[Service]
+ExecStart=/usr/bin/python /opt/honeytokens/honeytokens.py
+Restart=always
+RestartSec=2
+User=regular
+Group=regular
+Type=simple
+
+
+[Install]
+WantedBy=default.target
