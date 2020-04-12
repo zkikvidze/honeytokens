@@ -1,5 +1,0 @@
-[Unit]
-Description=HoneyToken service
-
-[service]
-ExecStart=/opt/honeytokens/honeytokens.py

@@ -17,8 +17,8 @@ config.read('/opt/honeytokens/config.conf')
 
 conf = config['honeytokens-config']
 
-
-db = TinyDB('db.json')
+dbfile = conf['databasefile']
+db = TinyDB(dbfile)
 query = Query()
 
 
@@ -160,11 +160,13 @@ def smtpAuth(msg):
     smtpserver = conf['smtpserver']
     port = conf.getint('smtpport')
     if port == 465:
-        server = smtplib.SMTP_SSL(smtpserver, 465)
+        server = smtplib.SMTP_SSL(smtpserver, 465, timeout=20)
     if port == 25:
-        server = smtplib.SMTP(smtpserver, 25)
-    else:
+        server = smtplib.SMTP(smtpserver, 25, timeout=20)
+    if port != 25 and port != 465:
         print('wrong smtp port, only 25 or 465')
+    else:
+        print('SMTP ERROR')    
     server.ehlo()
     server.login(email_user, email_password)
     server.sendmail(email_user, toaddr, msg)
@@ -176,12 +178,14 @@ def smtpOPN(msg):
     toaddr = conf['toaddress']
     smtpserver = conf['smtpserver']
     port = conf.getint('smtpport')
-    if conf['smtpport'] == 465:
-        server = smtplib.SMTP_SSL(conf['smtpserver'], 465)
-    if conf['smtpport'] == 25:
-        server = smtplib.SMTP(conf['smtpserver'], 25)
-    else:
+    if port == 465:
+        server = smtplib.SMTP_SSL(conf['smtpserver'], 465, timeout=20)
+    if port == 25:
+        server = smtplib.SMTP(conf['smtpserver'], 25, timeout=20)
+    if port != 25 and port != 465:
         print('wrong smtp port, only 25 or 465')
+    else:
+        print('SMTP ERROR')
     server.sendmail(email_user, toaddr, msg)
     server.quit()
 

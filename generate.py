@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import uuid
 from tinydb import TinyDB
 from netaddr import valid_ipv4
@@ -11,10 +14,10 @@ config = configparser.ConfigParser()
 config.read('/opt/honeytokens/config.conf')
 
 conf = config['honeytokens-config']
+dbfile = conf['databasefile']
 
 
-
-db = TinyDB('db.json')
+db = TinyDB(dbfile)
 
 randomtoken = str(uuid.uuid4())
 
