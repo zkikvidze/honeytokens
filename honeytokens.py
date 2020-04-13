@@ -10,6 +10,7 @@ from twisted.internet import reactor, endpoints, defer
 import configparser
 import smtplib
 import threading
+import datetime
 
 
 config = configparser.ConfigParser()
@@ -130,9 +131,12 @@ def logTo(message):
 def logToSIEM(message):
     print('logging to siem')
     logger = logging.getLogger()
-    logger.addHandler(SysLogHandler(address=(conf['siemaddress'],conf['siemport'])))
+    logger.addHandler(SysLogHandler(address=(conf['siemaddress'],conf.getint('siemport'))))
     
-    cefheader = 'CEF:0|honeypot|honeytoken|1.0|100|HoneyToken Access Detected|10|'
+    now = datetime.datetime(now)
+    now = now.strftime('%b %d %H:%M:%S')
+    
+    cefheader = str(now) + ' HoneyTokens ' + 'CEF:0|honeypot|honeytoken|1.0|100|HoneyToken Access Detected|10|'
     token = message[0]['token']
     tokentype = message[0]['type']
     hostname = message[0]['hostname']
@@ -151,7 +155,7 @@ def logToSIEM(message):
         corpdomain = message[1]['corpdomain']
         
         cefmessage = cefheader + 'cs1=' + token  + ' cs2=' + tokentype + ' dhost=' + hostname + ' dst=' + ip + ' filePath='  + path + ' cs3=' + description + ' suser=' + username + ' shost=' + clienthostname + ' sntdom=' + corpdomain
-
+    logging.warn(cefmessage)
 
 def smtpAuth(msg):
     email_user = conf['smtpuser']
