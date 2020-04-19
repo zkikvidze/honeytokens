@@ -7,4 +7,4 @@ generate.py - Generate payload, currently supported .doc and desktop.ini payload
 
 search.py - Just queries json.
 
-for now, there is no error checking (mostly) and lacks lots of things. but works.
+for now, there is no error checking (mostly) and lacks lots of things. but works. tested on python 3.8
