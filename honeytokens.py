@@ -131,7 +131,8 @@ def logTo(message):
 def logToSIEM(message):
     print('logging to siem')
     logger = logging.getLogger()
-    logger.addHandler(SysLogHandler(address=(conf['siemaddress'],conf.getint('siemport'))))
+    if not len(logger.handlers):
+        logger.addHandler(SysLogHandler(address=(conf['siemaddress'],conf.getint('siemport'))))
     
     now = datetime.datetime(now)
     now = now.strftime('%b %d %H:%M:%S')
